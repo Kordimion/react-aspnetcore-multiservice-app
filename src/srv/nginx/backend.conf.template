@@ -1,0 +1,40 @@
+    log_format	upstream_log	'$server_name to $upstream_addr [$request] '
+                                    'upstream_http_content_type $upstream_http_content_type'
+                                    'upstream_response_time $upstream_response_time '
+                                    'msec $msec request_time $request_time'
+                                    '$status $body_bytes_sent "$http_referer" '
+                                    '"$http_user_agent" "$http_x_forwarded_for"';
+    access_log  /var/logs/front_nginx_access.log  upstream_log;
+
+    
+  include /etc/nginx/proxy.conf;
+  server {
+    listen       80;
+    listen  [::]:80;
+    server_name ${BASE_URL};
+	
+
+    location / {
+        root  /usr/share/nginx/html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /admin/ {
+        proxy_pass http://${BACKEND_ADMIN}/admin/;        
+    }
+
+    location /catalog/ {
+        proxy_pass http://${BACKEND_CATALOG}/catalog/;
+    }
+
+    location /identity/ {
+        proxy_pass http://${BACKEND_IDENTITY}/identity/;
+
+ 
+    }
+
+    location /api/ {
+        proxy_pass http://${BACKEND_API}/;
+    }
+
+  }

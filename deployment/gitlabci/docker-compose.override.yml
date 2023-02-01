@@ -1,0 +1,100 @@
+version: '3.4'
+
+services:
+  shopmanager:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${NS_ENV:-Development}
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+      - ASPNETCORE_PATHBASE=${NS_SHOPMANAGER_PATHBASE:-/admin}
+      - ConnectionStrings__DefaultConnection=Host=${NS_POSTGRES:-postgresdb};Port=5432;Database=nsshopmanager;Username=postgres;Password=${DB_PASSWORD:-postgres}
+      - ApiSettings__CatalogUrl=http://catalogapi/catalog
+      - ApiSettings__CatalogHost_EXTERNAL=${NS_SCHEMA_EXT:-http}://${NS_BASE_URL:-localhost}${NS_CATALOGAPI_PATHBASE:-/catalog}
+    volumes:
+      - ${NS_LOG_PATH:-./logs}:/logs 
+    networks:
+      - prjnet  
+
+  catalogapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${NS_ENV:-Development}
+      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+      - ASPNETCORE_PATHBASE=${NS_CATALOGAPI_PATHBASE:-/catalog}
+      - ConnectionStrings__DefaultConnection=Host=${NS_POSTGRES:-postgresdb};Port=5432;Database=nscatalogapi;Username=postgres;Password=${DB_PASSWORD:-postgres}
+      - IdentityS4Settings__AuthorityURL=${NS_SCHEMA:-http}://${NS_BASE_URL:-localhost}/identity/
+      - IdentityS4Settings__Secret=BDD0BF42-3652-4B3B-A5DD-715ACF1E53D3
+    volumes:
+      - ${NS_LOG_PATH:-./logs}:/logs 
+    networks:
+      - prjnet  
+
+  identityapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${NS_ENV:-Development}
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Host=${NS_POSTGRES:-postgresdb};Port=5432;Database=nsidentityapi;Username=postgres;Password=${DB_PASSWORD:-postgres}
+      - Spa__BASE_URL=${NS_BASE_URL:-localhost}
+      - Spa__Schema=${NS_SCHEMA:-http}
+      - Spa__Secret=BDD0BF42-3652-4B3B-A5DD-715ACF1E53D3
+      - Catalog__Secret=BDD0BF42-3652-4B3B-A5DD-715ACF1E53D3
+      - ShopManager__Secret=BDD0BF42-3652-4B3B-A5DD-715ACF1E53D3
+      - ASPNETCORE_PATHBASE=${NS_IDENTITYAPI_PATHBASE:-/identity}
+    volumes:
+      - ${NS_LOG_PATH:-./logs}:/logs 
+    ports:
+      - 7001:80
+
+    networks:
+      - prjnet  
+
+  frontend:
+    environment:
+      - BACKEND_IDENTITY=${NS_IDENTITY_URL:-identityapi}
+      - BACKEND_CATALOG=${NS_CATALOG_URL:-catalogapi}
+      - BACKEND_ADMIN=shopmanager
+      - BACKEND_API=whoamiapi:8000
+      - BASE_URL=${NS_BASE_URL:-localhost}
+    volumes:  
+      - ${NS_LOG_PATH:-./logs}/nginx:/var/logs
+      - ${NS_PROXY:-./srv/nginx/proxy.conf}:/etc/nginx/proxy.conf
+    ports:
+      - 80:80
+    networks:
+      - prjnet  
+
+  #frontendssl:
+  #  depends_on:
+  #    - frontend
+  #    - identityapi
+  #    - catalogapi  
+  #  restart: unless-stopped    
+  #  environment:
+  #    - BASE_URL=${NS_BASE_URL:-localhost}
+  #    - BACKEND_URL=frontend
+      
+  #  ports:
+  #    - 80:80
+  #    - 443:443
+  #  volumes:  
+  #    - ${NS_LOG_PATH:-./logs}/nginx:/var/logs
+  #    - ${NS_CERTS:-./srv/nginx/certs}:/etc/nginx/certs
+  #    - ${NS_PROXY:-./srv/nginx/proxy.conf}:/etc/nginx/proxy.conf
+  #  networks:
+  #    - prjnet  
+
+  whoamiapi:
+    expose:
+      - "8000"
+    ports:
+      - 7002:8000
+
+    networks:
+      - prjnet  
+
+networks:
+  prjnet:
+    external: true
+    name: ${NET_NAME:-dev_shop}      
+
+    

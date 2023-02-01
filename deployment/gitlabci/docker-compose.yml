@@ -1,0 +1,27 @@
+version: '3.4'
+
+services:
+  shopmanager:
+    image: ${DOCKER_REGISTRY-}/shopmanager:${DOCKER_TAG}
+  catalogapi:
+    image: ${DOCKER_REGISTRY-}/catalogapi:${DOCKER_TAG}
+
+
+  identityapi:
+    image: ${DOCKER_REGISTRY-}/identityapi:${DOCKER_TAG}
+      
+  frontend:
+    image: ${DOCKER_REGISTRY-}/frontend:${DOCKER_TAG}
+
+  #frontendssl:
+  #  image: ${DOCKER_REGISTRY-}/frontendssl:${DOCKER_TAG}
+
+  whoamiapi:
+    image: jwilder/whoami
+
+networks:
+  prjnet:
+    external: true
+    name: ${NET_NAME:-dev_shop}      
+
+

@@ -1,0 +1,41 @@
+version: '3.4'
+
+services:
+  shopmanager:
+    image: ${DOCKER_REGISTRY-}shopmanager
+    build:
+      context: .
+      dockerfile: ShopManager/Dockerfile
+
+  catalogapi:
+    image: ${DOCKER_REGISTRY-}catalogapi
+    build:
+      context: .
+      dockerfile: Services/CatalogApi/Dockerfile
+
+
+  identityapi:
+    image: ${DOCKER_REGISTRY-}identityapi
+    build:
+      context: .
+      dockerfile: Services/IdentityApi/Dockerfile
+      
+  frontend:
+    image: ${DOCKER_REGISTRY-}frontend
+    build:
+      context: .
+      dockerfile: Frontend/WebSPA/Dockerfile
+      args:
+        - BASE_URL=${NS_BASE_URL:-localhost}
+        - TOKEN_SERVICE_URL=${NS_BASE_URL:-localhost}/identity
+        - OIDC_CLIENT_SECRET=BDD0BF42-3652-4B3B-A5DD-715ACF1E53D3
+  
+  #frontendssl:
+  #  image: ${DOCKER_REGISTRY-}frontendssl
+  #  build:
+  #    context: .
+  #    dockerfile: srv/nginx/Dockerfilessl
+
+  # Only for API sample
+  whoamiapi:
+    image: jwilder/whoami

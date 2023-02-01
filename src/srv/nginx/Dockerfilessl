@@ -1,0 +1,5 @@
+FROM nginx:1.23.2-alpine
+COPY srv/nginx/ssl.conf.template /etc/nginx/templates/default.conf.template
+COPY srv/nginx/security.conf /etc/nginx/security.conf
+EXPOSE 80
+EXPOSE 443

@@ -1,0 +1,98 @@
+version: '3.4'
+
+services:
+  shopmanager:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${NS_ENV:-Development}
+      - ASPNETCORE_URLS=${NS_ASPNETCORE_URLS:-https://+:443;http://+:80}
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+      - ASPNETCORE_PATHBASE=${NS_SHOPMANAGER_PATHBASE:-/}
+      - ConnectionStrings__DefaultConnection=Host=${NS_POSTGRES:-postgresdb};Port=5432;Database=nsshopmanager;Username=postgres;Password=${DB_PASSWORD:-postgres}
+      - ApiSettings__CatalogUrl=${NS_SCHEMA:-http}://${NS_BASE_URL:-localhost}/catalog/
+      - ApiSettings__CatalogHost_EXTERNAL=${NS_SCHEMA:-http}://${NS_BASE_URL:-localhost}/catalog/
+    ports:
+      - 7003:80
+      - "443"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+      - ${NS_LOG_PATH:-./logs}:/logs 
+
+  catalogapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${NS_ENV:-Development}
+      - ASPNETCORE_URLS=${NS_ASPNETCORE_URLS:-https://+:443;http://+:80}
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+      - ASPNETCORE_PATHBASE=${NS_CATALOGAPI_PATHBASE:-/}
+      - ConnectionStrings__DefaultConnection=Host=${NS_POSTGRES:-postgresdb};Port=5432;Database=nscatalogapi;Username=postgres;Password=${DB_PASSWORD:-postgres}
+      - IdentityS4Settings__Secret=BDD0BF42-3652-4B3B-A5DD-715ACF1E53D3
+      - IdentityS4Settings__AuthorityURL=${NS_SCHEMA:-http}://${NS_BASE_URL:-localhost}/identity/
+      #For local debug
+      #- IdentityS4Settings__AuthorityURL=${NS_SCHEMA:-http}://${NS_IDENTITY_INT_URL:-identityapi}/identity/
+    ports:
+      - 7002:80
+      - "443"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+      - ${NS_LOG_PATH:-./logs}:/logs 
+
+  identityapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${NS_ENV:-Development}
+      - ASPNETCORE_URLS=${NS_ASPNETCORE_URLS:-https://+:443;http://+:80}
+      - ConnectionStrings__DefaultConnection=Host=${NS_POSTGRES:-postgresdb};Port=5432;Database=nsidentityapi;Username=postgres;Password=${DB_PASSWORD:-postgres}
+      - Spa__BASE_URL=${NS_BASE_URL:-localhost}
+      - Spa__EXTERNAL_PORT=-;
+      - Spa__Secret=BDD0BF42-3652-4B3B-A5DD-715ACF1E53D3
+      - Spa__Schema=${NS_SCHEMA:-http}
+      - Catalog__Secret=BDD0BF42-3652-4B3B-A5DD-715ACF1E53D3
+      - ShopManager__Secret=BDD0BF42-3652-4B3B-A5DD-715ACF1E53D3
+      - ASPNETCORE_PATHBASE=${NS_IDENTITYAPI_PATHBASE:-/}
+    ports:
+      - 7001:80
+      - "443"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+      - ${NS_LOG_PATH:-./logs}:/logs 
+
+  
+  frontend:
+    environment:
+      - BACKEND_IDENTITY=${NS_IDENTITY_URL:-identityapi}
+      - BACKEND_CATALOG=${NS_CATALOG_URL:-catalogapi}
+      - BACKEND_ADMIN=shopmanager
+      - BACKEND_API=whoamiapi:8000
+      - BASE_URL=${NS_BASE_URL:-localhost}
+    ports:
+      - 80:80
+    volumes:  
+      - ${NS_LOG_PATH:-./logs}/nginx:/var/logs
+      - ./srv/nginx/proxy.conf:/etc/nginx/proxy.conf
+    depends_on:
+      - shopmanager
+      - identityapi
+      - catalogapi
+
+  #frontendssl:
+  #  depends_on:
+  #    - frontend
+  #    - identityapi
+  #    - catalogapi  
+  #  environment:
+  #    - BASE_URL=${NS_BASE_URL:-localhost}
+  #    - BACKEND_URL=frontend
+  #  ports:
+  #    - 80:80
+  #    - 443:443
+  #  volumes:  
+  #    - ${NS_LOG_PATH:-./logs}/nginx:/var/logs
+  #    - ${NS_CERTS:-./srv/nginx/certs}:/etc/nginx/certs
+  #    - ./srv/nginx/proxy.conf:/etc/nginx/proxy.conf
+
+
+  whoamiapi:
+    expose:
+      - "8000"
+ 
