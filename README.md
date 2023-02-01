@@ -1,3 +1,16 @@
+# IdentityServer4 AspNetCore React Docker application
+
+this is a sample development environment for microservice application
+
+## Used technologies/tools:
+- IdentityServer4
+- C# 10.0 with ASP.NET CORE 7.0 
+- create-react-app with typescript
+- Nginx proxy
+- GitLab CI/CD
+- PostgreSQL DB
+- Powershell
+
 
 ## Start project localy
 for Windows
