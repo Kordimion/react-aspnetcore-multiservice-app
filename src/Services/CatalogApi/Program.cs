@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 
 using System;
 using Microsoft.AspNetCore.HttpOverrides;
+using System.Runtime.Intrinsics.X86;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -114,7 +115,14 @@ try
     // Configure the HTTP request pipeline.
     if (!app.Environment.IsProduction())
     {
-        
+/*
+        HttpClientHandler clientHandler = new HttpClientHandler();
+        clientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => {
+            Log.Logger.Debug($"Catalog API CertificateCustomValidationCallback: {sender}, {cert}, {chain}, {sslPolicyErrors}  ");
+            return true; };
+        // Pass the handler to httpclient(from you are calling api)
+        HttpClient client = new HttpClient(clientHandler);
+*/
         string pathBase = Environment.GetEnvironmentVariable("ASPNETCORE_PATHBASE");
         if (!string.IsNullOrEmpty(pathBase) && pathBase != "/")
         {

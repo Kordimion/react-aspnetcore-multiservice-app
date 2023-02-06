@@ -11,8 +11,6 @@
   server {
     listen       80;
     listen  [::]:80;
-    server_name ${BASE_URL};
-	
 
     location / {
         root  /usr/share/nginx/html;
@@ -25,12 +23,6 @@
 
     location /catalog/ {
         proxy_pass http://${BACKEND_CATALOG}/catalog/;
-    }
-
-    location /identity/ {
-        proxy_pass http://${BACKEND_IDENTITY}/identity/;
-
- 
     }
 
     location /api/ {

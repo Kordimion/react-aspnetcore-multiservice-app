@@ -51,13 +51,12 @@ include /etc/nginx/proxy.conf;
 upstream ${BASE_URL}ref {
         server ${BACKEND_URL};
 }
-server {
-        server_name _; # This is just an invalid value which will never trigger on a real hostname.
-        server_tokens off;
-        listen 80;
-
-        return 503;
-}	
+#server {
+#        server_name _; # This is just an invalid value which will never trigger on a real hostname.
+#        server_tokens off;
+#        listen 80;
+#        return 503;
+#}	
 server {
 	listen 80 ;
 	server_name ${BASE_URL};
@@ -77,14 +76,17 @@ server {
 }
    
 server {
-	listen 443 ssl http2 ;	
+	listen 443 ssl; # http2 ;	
 	server_name  ${BASE_URL};
-	
+
+	ssl_protocols TLSv1.2 TLSv1.3;
 	ssl_session_timeout 5m;
 	ssl_session_cache off; #shared:SSL:50m;
 	ssl_session_tickets off;
 	ssl_certificate /etc/nginx/certs/${BASE_URL}.crt;
 	ssl_certificate_key /etc/nginx/certs/${BASE_URL}.key;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
 	include /etc/nginx/security.conf;
     # removed for Dev and mixed content 80
 	#add_header Strict-Transport-Security "max-age=31536000" always; 
@@ -93,4 +95,12 @@ server {
   location / {
     proxy_pass http://${BASE_URL}ref;
   }    
+
+  location /identity/ {
+    proxy_pass https://${BACKEND_IDENTITY}:443/identity/;
+	proxy_ssl_server_name on;
+	proxy_ssl_name ${BASE_URL};
+	proxy_set_header Host ${BASE_URL};
+  }
+
 }

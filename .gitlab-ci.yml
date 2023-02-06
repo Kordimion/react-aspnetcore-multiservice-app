@@ -10,6 +10,8 @@ stages:
 
 .before-script: &before-script
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  - echo "mnt test"
+  #- ls /mnt/test57
   # TODO for prod environment
   #- export DOCKER_TAG=$(echo $CI_COMMIT_BRANCH | sed 's#/#_#g')-$CI_COMMIT_SHORT_SHA
   - export DOCKER_TAG=latest
@@ -19,11 +21,14 @@ stages:
   # TODO for prod environment
   - export NS_BASE_URL=$(if [[ $CI_ENVIRONMENT_NAME = production ]]; then echo "docker.neva.loc"; else echo "docker.neva.loc"; fi) 
   - echo $NS_BASE_URL
-  - export NS_CERTS="/srv/nginx/certs"
+  - export NS_CERTS=/srv/nginx/certs
   - export NS_LOG_PATH="/srv/logs"
-  - export NS_PROXY=/srv/nginx/proxy.conf
+  - export NS_PROXY_PATH=/srv/nginx/proxy.conf
   - export NS_SHOPMANAGER_PATHBASE=/admin
   - export NS_IDENTITYAPI_PATHBASE=/identity
+  - export NS_CATALOGAPI_PATHBASE=/catalog
+  - export NS_SCHEMA=https
+  - export NS_CERTS_ROOT=./srv/buildcertificate/rootca
 
 build-containers-branch:
   stage: build
@@ -32,9 +37,12 @@ build-containers-branch:
   before_script:
     - *before-script
   script:
-    - docker build -t $CI_REGISTRY_IMAGE/catalogapi:$DOCKER_TAG ./src -f ./src/Services/CatalogApi/Dockerfile
+    #- $BuildOption = --no-cache
+    - mkdir -p ./src/srv/buildcertificate/rootca
+    - cp -R /rootca/* ./src/srv/buildcertificate/rootca
+    - docker build $BuildOption --build-arg CERTS_PATH=$NS_CERTS_ROOT -t $CI_REGISTRY_IMAGE/catalogapi:$DOCKER_TAG ./src -f ./src/Services/CatalogApi/Dockerfile
     - docker push $CI_REGISTRY_IMAGE/catalogapi:$DOCKER_TAG
-    - docker build -t $CI_REGISTRY_IMAGE/identityapi:$DOCKER_TAG ./src -f ./src/Services/IdentityApi/Dockerfile
+    - docker build $BuildOption --build-arg CERTS_PATH=$NS_CERTS_ROOT -t $CI_REGISTRY_IMAGE/identityapi:$DOCKER_TAG ./src -f ./src/Services/IdentityApi/Dockerfile
     - docker push $CI_REGISTRY_IMAGE/identityapi:$DOCKER_TAG
     # Container IP. TODO get external IP
     #- export ADDRESS_IP=$(ip -f inet addr show eth0 | sed -En -e 's/.*inet ([0-9.]+).*/\1/p')
@@ -42,12 +50,12 @@ build-containers-branch:
     - ADDRESS_IP=192.168.0.57
     - echo ${ADDRESS_IP}
     - sed 's/127.0.0.1/'$ADDRESS_IP'/g' ./src/Frontend/WebSPA/nginx/links.html > links.html && mv links.html ./src/Frontend/WebSPA/nginx/links.html
-    - docker build --build-arg BASE_URL=$NS_BASE_URL --build-arg OIDC_CLIENT_SECRET=BDD0BF42-3652-4B3B-A5DD-715ACF1E53D3 --build-arg TOKEN_SERVICE_URL=docker.neva.loc/identity -t $CI_REGISTRY_IMAGE/frontend:$DOCKER_TAG ./src -f ./src/Frontend/WebSPA/Dockerfile
+    - docker build $BuildOption --build-arg CERTS_PATH=$NS_CERTS_ROOT  --build-arg BASE_URL=$NS_BASE_URL --build-arg OIDC_CLIENT_SECRET=BDD0BF42-3652-4B3B-A5DD-715ACF1E53D3 --build-arg TOKEN_SERVICE_URL=docker.neva.loc/identity -t $CI_REGISTRY_IMAGE/frontend:$DOCKER_TAG ./src -f ./src/Frontend/WebSPA/Dockerfile
 
-    - docker push $CI_REGISTRY_IMAGE/frontend:$DOCKER_TAG
-    - docker build -t $CI_REGISTRY_IMAGE/shopmanager:$DOCKER_TAG ./src -f ./src/ShopManager/Dockerfile
+    - docker push  $CI_REGISTRY_IMAGE/frontend:$DOCKER_TAG
+    - docker build $BuildOption --build-arg CERTS_PATH=$NS_CERTS_ROOT -t $CI_REGISTRY_IMAGE/shopmanager:$DOCKER_TAG ./src -f ./src/ShopManager/Dockerfile
     - docker push $CI_REGISTRY_IMAGE/shopmanager:$DOCKER_TAG
-    - docker build -t $CI_REGISTRY_IMAGE/frontendssl:$DOCKER_TAG ./src -f ./src/srv/nginx/Dockerfilessl
+    - docker build $BuildOption -t $CI_REGISTRY_IMAGE/frontendssl:$DOCKER_TAG ./src -f ./src/srv/nginx/Dockerfilessl
     - docker push $CI_REGISTRY_IMAGE/frontendssl:$DOCKER_TAG
   rules:
     - if: $CI_PIPELINE_SOURCE != "schedule" && $CI_PIPELINE_SOURCE != "merge_request_event"

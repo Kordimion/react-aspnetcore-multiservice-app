@@ -3,3 +3,8 @@ bin
 obj
 logs
 *.user
+rootCA
+*.crt
+*.key
+*.pfx
+*.csr

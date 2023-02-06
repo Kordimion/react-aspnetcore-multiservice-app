@@ -24,7 +24,17 @@ Log.Information("Starting host...");
 builder.Host.UseLogging();
 
 builder.LogStartUp();
-
+/*
+builder.WebHost.ConfigureKestrel((context, serverOptions) =>
+{
+    var kestrelSection = context.Configuration.GetSection("Kestrel");
+    serverOptions.Configure(kestrelSection)
+        .Endpoint("HTTPS", listenOptions =>
+        {
+            // ...
+        });
+});
+*/
 builder.Services.AddControllersWithViews();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -90,51 +100,60 @@ builder.Services.ConfigureApplicationCookie(options => {
 var app = builder.Build();
 
 string pathBase = Environment.GetEnvironmentVariable("ASPNETCORE_PATHBASE");
-
-using (IServiceScope scope = app.Services.CreateScope())
+try
 {
-    scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
+    using (IServiceScope scope = app.Services.CreateScope())
+    {
+        scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
 
-    Log.Information("Seeding database...");
-    var config = builder.Configuration;
-    var connectionString = config.GetConnectionString("DefaultConnection");
-    SeedData.EnsureSeedData(connectionString);
-    Log.Information("Done seeding database.");
-}
+        Log.Information("Seeding database...");
+        var config = builder.Configuration;
+        var connectionString = config.GetConnectionString("DefaultConnection");
+        SeedData.EnsureSeedData(connectionString);
+        Log.Information("Done seeding database.");
+    }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
-//app.UseForwardedHeaders(fhOptions);
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+    //app.UseForwardedHeaders(fhOptions);
 
-if (!string.IsNullOrEmpty(pathBase) && pathBase != "/")
-{
-    app.UseStaticFiles(new PathString(pathBase));
-    app.UsePathBase(new PathString(pathBase));
-    app.UseRouting();
-    app.UseIdentityServer();
-    Log.Logger.Debug($"Identity subfolder: {pathBase}");
-}
-else
-{
-    app.UseStaticFiles();
-    app.UseRouting();
-    app.UseIdentityServer();
+    if (!string.IsNullOrEmpty(pathBase) && pathBase != "/")
+    {
+        app.UseStaticFiles(new PathString(pathBase));
+        app.UsePathBase(new PathString(pathBase));
+        app.UseRouting();
+        app.UseIdentityServer();
+        Log.Logger.Debug($"Identity subfolder: {pathBase}");
+    }
+    else
+    {
+        app.UseStaticFiles();
+        app.UseRouting();
+        app.UseIdentityServer();
     
-    Log.Logger.Debug($"Identity subfolder: Empty");
+        Log.Logger.Debug($"Identity subfolder: Empty");
+    }
+
+
+    //app.UseCors("corsapp");
+
+    app.UseAuthorization();
+
+    app.MapDefaultControllerRoute();
+    app.MapRazorPages();
+
+    app.MapGet("/",
+        () => "Hello Identity Api!"
+    );
+    app.Run();
 }
-
-
-//app.UseCors("corsapp");
-
-app.UseAuthorization();
-
-app.MapDefaultControllerRoute();
-app.MapRazorPages();
-
-app.MapGet("/",
-    () => "Hello Identity Api!"
-);
-app.Run();
-
+catch (Exception ex)
+{
+    Log.Error(ex.Message);
+}
+finally
+{
+    Log.CloseAndFlush();
+}

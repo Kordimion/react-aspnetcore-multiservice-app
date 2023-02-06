@@ -51,9 +51,25 @@ try{
 	}
 	Write-Host $Mode
 
+	#Create sef signet certificate
+	Set-Location -Path $Projectpath\src\srv\buildcertificate
+	./buildcrt.ps1
+	Set-Location -Path $Projectpath
+	Set-Location -Path ./src
+
 	if($Mode -eq "build"){
 		docker-compose --env-file ./.env.win build  	
 	}
+	
+	#You can check port 80
+	#$check=Test-NetConnection $localhost -Port 80 -WarningAction SilentlyContinue
+	#If ($check.tcpTestSucceeded -eq $true){
+	#	Write-Host "Port 80 in use"
+	#	netstat -ano -p tcp | Select-String "0.0.0.0:80"
+	#	Set-Location -Path $Projectpath
+	#	exit
+	#}
+
 	#Clean log folder
 	$LogPath=$Projectpath+"/src/logs"
 	if (Test-Path -Path $LogPath) {

@@ -5,10 +5,11 @@
     <DockerTargetOS>Linux</DockerTargetOS>
     <ProjectGuid>34cbe967-1e19-4b77-b114-21ef7f6b897a</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
-    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}</DockerServiceUrl>
-    <DockerServiceName>IdentityApi</DockerServiceName>
+    <DockerServiceUrl>https://host.docker.internal/admin/</DockerServiceUrl>
+    <DockerServiceName>shopmanager</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
+    <None Include=".env" />
     <None Include=".env.linux" />
     <None Include=".env.win" />
     <None Include="docker-compose.override.yml">

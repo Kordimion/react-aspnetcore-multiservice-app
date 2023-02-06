@@ -13,12 +13,16 @@
     "https": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "swagger",
+      "launchUrl": "catalog/swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_PATHBASE": "/catalog",
+        "ASPNETCORE_Kestrel__Certificates__Default__Path": "/https/host.docker.internal.crt",
+        "ASPNETCORE_Kestrel__Certificates__Default__KeyPath": "/https/host.docker.internal.key",
+        "ASPNETCORE_Kestrel__Certificates__Default__AllowInvalid": "true"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:7260;http://localhost:5139"
+      "applicationUrl": "https://host.docker.internal:7260;http://host.docker.internal:5139"
     },
     "IIS Express": {
       "commandName": "IISExpress",

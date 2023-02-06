@@ -13,7 +13,6 @@ services:
       context: .
       dockerfile: Services/CatalogApi/Dockerfile
 
-
   identityapi:
     image: ${DOCKER_REGISTRY-}identityapi
     build:
@@ -30,11 +29,11 @@ services:
         - TOKEN_SERVICE_URL=${NS_BASE_URL:-localhost}/identity
         - OIDC_CLIENT_SECRET=BDD0BF42-3652-4B3B-A5DD-715ACF1E53D3
   
-  #frontendssl:
-  #  image: ${DOCKER_REGISTRY-}frontendssl
-  #  build:
-  #    context: .
-  #    dockerfile: srv/nginx/Dockerfilessl
+  frontendssl:
+    image: ${DOCKER_REGISTRY-}frontendssl
+    build:
+      context: .
+      dockerfile: srv/nginx/Dockerfilessl
 
   # Only for API sample
   whoamiapi:

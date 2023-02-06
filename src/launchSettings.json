@@ -1,0 +1,19 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "composeLaunchAction": "LaunchBrowser",
+      "composeLaunchServiceName": "shopmanager",
+      "composeLaunchUrl": "https://host.docker.internal/admin/",
+      "serviceActions": {
+        "catalogapi": "StartDebugging",
+        "frontend": "StartWithoutDebugging",
+        "frontendssl": "StartWithoutDebugging",
+        "identityapi": "StartDebugging",
+        "shopmanager": "StartDebugging",
+        "whoamiapi": "StartWithoutDebugging"
+      }
+    }
+  }
+}

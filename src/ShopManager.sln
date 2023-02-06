@@ -36,6 +36,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "buildcertificate", "buildce
 	ProjectSection(SolutionItems) = preProject
 		srv\buildcertificate\buildcrt.ps1 = srv\buildcertificate\buildcrt.ps1
 		srv\buildcertificate\buildcrt.sh = srv\buildcertificate\buildcrt.sh
+		srv\buildcertificate\host.docker.internal.conf = srv\buildcertificate\host.docker.internal.conf
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{054B9EFC-79F9-43A6-B260-321EB4293698}"

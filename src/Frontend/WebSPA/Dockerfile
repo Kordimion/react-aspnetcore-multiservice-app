@@ -7,6 +7,8 @@ COPY Frontend/WebSPA/page/package-lock.json ./
 ARG BASE_URL
 ARG TOKEN_SERVICE_URL
 ARG OIDC_CLIENT_SECRET
+ARG CERTS_PATH=srv/buildcertificate/rootca
+
 RUN npm ci --silent
 RUN npm install react-scripts@3.4.1 -g --silent
 COPY ./Frontend/WebSPA/page ./
@@ -22,3 +24,8 @@ COPY srv/nginx/backend.conf.template /etc/nginx/templates/default.conf.template
 
 RUN mkdir -p /usr/share/nginx/html/ref/
 COPY Frontend/WebSPA/nginx/links.html /usr/share/nginx/html/ref/index.html
+
+RUN mkdir -p /https 
+COPY $CERTS_PATH /https
+RUN cp -R /https/* /usr/local/share/ca-certificates
+RUN update-ca-certificates -f

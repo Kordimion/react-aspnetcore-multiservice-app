@@ -13,8 +13,8 @@ services:
   frontend:
     image: ${DOCKER_REGISTRY-}/frontend:${DOCKER_TAG}
 
-  #frontendssl:
-  #  image: ${DOCKER_REGISTRY-}/frontendssl:${DOCKER_TAG}
+  frontendssl:
+    image: ${DOCKER_REGISTRY-}/frontendssl:${DOCKER_TAG}
 
   whoamiapi:
     image: jwilder/whoami

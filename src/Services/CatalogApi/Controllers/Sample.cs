@@ -107,7 +107,7 @@ namespace OrderApi.Controllers
             if (disco.IsError)
             {
                 Console.WriteLine($"Disco error: {disco.Error}");
-                Log.Debug($"Disco error:  { disco.Error}");
+                Log.Error($"Disco error:  { disco.Error}");
                 return null;
             }
 
@@ -124,7 +124,7 @@ namespace OrderApi.Controllers
             if (tokenResponse.IsError)
             {
                 Console.WriteLine($"Token error: {disco.Error}");
-                Log.Debug(tokenResponse.Error);
+                Log.Error($"Token error: {tokenResponse.Error}");
 
                 return null;
             }
